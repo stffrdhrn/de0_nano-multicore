@@ -6,13 +6,13 @@ depend =
  ::adv_debug_sys:3.1.0
  ::altera_virtual_jtag:1.0
  ::gpio:1.0
- ::i2c:1.14
- ::jtag_tap:1.13
- ::mor1kx:5.0
+ >=::i2c:1.14
+ >=::jtag_tap:1.13
+ >=::mor1kx:0
  ::or1k_bootloaders:0.9.1
  ::simple_spi:1.6
- ::uart16550:1.5.5
- ::wb_intercon:1.2
+ >=::uart16550:1.5.5
+ >=::wb_intercon:1.2
  ::wb_ram:1.1
  ::wb_sdram_ctrl:0-r2
  ::ompic:1.0
