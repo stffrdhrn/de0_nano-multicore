@@ -1,55 +1,107 @@
-CAPI=1
-[main]
-name = de0_nano-multicore
-description = "Altera/Terasic de0 nano board OpenRISC multicore system"
-depend =
- ::adv_debug_sys:3.1.0
- ::altera_virtual_jtag:1.0
- ::gpio:1.0
- >=::i2c:1.14
- >=::jtag_tap:1.13
- >=::mor1kx:0
- ::or1k_bootloaders:0.9.1
- ::simple_spi:1.6
- >=::uart16550:1.5.5
- >=::wb_intercon:1.2
- ::wb_ram:1.1
- ::wb_sdram_ctrl:0-r2
- ::ompic:1.0
- ::timer:1.0
+CAPI=2:
 
-backend = quartus
-simulators = icarus
+name: ::de0_nano-multicore:1.1
+description: "Altera/Terasic de0 nano board OpenRISC multicore system"
 
-[quartus]
-family = "Cyclone IV E"
-device = EP4CE22F17C6
-sdc_files = data/de0_nano.sdc
-tcl_files = data/pinmap.tcl
-            data/options.tcl
+filesets:
+  core_files:
+    files:
+      - rtl/verilog/clkgen.v
+      - rtl/verilog/rom.v
+      - rtl/verilog/wb_intercon.v
+      - rtl/verilog/orpsoc_top.v
+      - rtl/verilog/include/timescale.v: {is_include_file: true}
+      - rtl/verilog/include/orpsoc-defines.v: {is_include_file: true}
+      - rtl/verilog/include/uart_defines.v: {is_include_file: true}
+      - rtl/verilog/wb_intercon.vh: {is_include_file: true}
+    file_type: verilogSource
+    depend:
+      - adv_debug_sys
+      - gpio
+      - ">=i2c-1.14"
+      - ">=jtag_tap-1.13"
+      - mor1kx
+      - ">=or1k_bootloaders-0.9.1"
+      - ">=simple_spi-1.6"
+      - ">=uart16550-1.5.5"
+      - ">=wb_intercon-1.2"
+      - ">=wb_sdram_ctrl-0-r2"
+      - ompic
+      - timer
 
-[fileset rtl_files]
-files =
- rtl/verilog/clkgen.v
- rtl/verilog/orpsoc_top.v
- backend/rtl/verilog/pll.v
- rtl/verilog/rom.v
- rtl/verilog/wb_intercon.v
-file_type = verilogSource
+  top_files:
+    files:
+      - backend/rtl/verilog/pll.v
+    file_type: verilogSource
+    depend:
+      - altera_virtual_jtag
 
-[fileset include_files]
-files =
- rtl/verilog/include/orpsoc-defines.v
- rtl/verilog/include/timescale.v
- rtl/verilog/include/uart_defines.v
- rtl/verilog/wb_intercon.vh
-file_type = verilogSource
-is_include_file = true
+  tb_files:
+    files:
+      - bench/orpsoc_tb.v
+      - bench/uart_decoder.v
+      - bench/test-defines.v: {is_include_file : true}
+    file_type: verilogSource
+    depend:
+      - "!isim? (!xsim? (>=::elf-loader:1.0.2))"
+      - "!isim? (!xsim? (>=::jtag_vpi:0-r5))"
+      - ">=vlog_tb_utils-1.0"
+      - mt48lc16m16a2
 
-[fileset tb_private_src_files]
-files =
- bench/orpsoc_tb.v
- bench/uart_decoder.v
-file_type = verilogSource
-scope = private
-usage = sim
+  constraints :
+    files:
+      - data/de0_nano.sdc: {file_type: SDC}
+      - data/pinmap.tcl  : {file_type: tclSource}
+      - data/options.tcl : {file_type: tclSource}
+
+targets:
+  synth: &synth
+    default_tool : quartus
+    filesets   :
+      - core_files
+      - top_files
+      - constraints
+    tools:
+      quartus:
+        family     : "Cyclone IV E"
+        device     : EP4CE22F17C6
+    toplevel   : [orpsoc_top]
+
+  sim:
+    default_tool : icarus
+
+    filesets:
+      - core_files
+      - tb_files
+    parameters:
+      - bootrom_file
+      - spi_flash_file
+    tools:
+      icarus:
+        iverilog_options : [-DICARUS_SIM, -DSIM, -DSPEEDSIM]
+      modelsim:
+        vlog_options : [+define+SIM, +define+MODELSIM_SIM, -timescale 1ns/1ps]
+        vsim_options : [-L, altera_mf_ver, -L, altera_mf]
+    toplevel : [orpsoc_tb]
+
+  default:
+    <<: *synth
+
+parameters:
+  bootrom_file:
+    datatype    : file
+    description : Initial boot ROM contents (in Verilog hex format)
+    paramtype   : vlogparam
+    scope       : private
+
+  spi_flash_file:
+    datatype    : file
+    description : Initial SPI Flash contents (in Verilog hex format)
+    paramtype   : vlogparam
+    scope       : private
+
+  spi_model:
+    datatype    : bool
+    description : Use SPI Flash model in simulations
+    paramtype   : useflag
+    scope       : private

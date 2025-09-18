@@ -40,7 +40,7 @@
 //////////////////////////////////////////////////////////////////////
 
 // Receieves and decodes 8-bit,  1 stop bit, no parity UART signals.
-`timescale 1ns/1ns
+`timescale 1ns/1ps
 module uart_decoder(clk, uart_tx);
 
    input clk;   
