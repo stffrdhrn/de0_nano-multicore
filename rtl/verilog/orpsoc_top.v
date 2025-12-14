@@ -41,6 +41,7 @@
 `include "orpsoc-defines.v"
 
 module orpsoc_top #(
+	parameter	option_pipeline = "CAPPUCCINO",
 	parameter	rom0_aw = 6,
 	parameter	uart0_aw = 3,
         parameter       HV1_SADR = 8'h45,
@@ -236,7 +237,7 @@ altera_virtual_jtag jtag_tap0 (
 
 ////////////////////////////////////////////////////////////////////////
 //
-// mor1kx cpu
+// mor1kx or marocchino cpu
 //
 ////////////////////////////////////////////////////////////////////////
 
@@ -258,6 +259,154 @@ wire		or1k_dbg_rst[0:1];
 assign or1k_clk = wb_clk;
 assign or1k_rst = wb_rst | or1k_dbg_rst[0] | or1k_dbg_rst[1];
 
+generate
+if (option_pipeline=="MAROCCHINO") begin : gencpu
+
+or1k_marocchino_top #(
+	.FEATURE_DEBUGUNIT		("ENABLED"),
+	.OPTION_ICACHE_BLOCK_WIDTH	(5),
+	.OPTION_ICACHE_SET_WIDTH	(7),
+	.OPTION_ICACHE_WAYS		(1),
+	.OPTION_ICACHE_LIMIT_WIDTH	(32),
+	.OPTION_DCACHE_BLOCK_WIDTH	(5),
+	.OPTION_DCACHE_SET_WIDTH	(8),
+	.OPTION_DCACHE_WAYS		(1),
+	.OPTION_DCACHE_LIMIT_WIDTH	(31),
+	.OPTION_RF_NUM_SHADOW_GPR	(2),
+	.OPTION_RESET_PC		(32'h00000100)
+) or1k_marocchino0 (
+	.iwbm_adr_o			(wb_m2s_or1k0_i_adr),
+	.iwbm_stb_o			(wb_m2s_or1k0_i_stb),
+	.iwbm_cyc_o			(wb_m2s_or1k0_i_cyc),
+	.iwbm_sel_o			(wb_m2s_or1k0_i_sel),
+	.iwbm_we_o			(wb_m2s_or1k0_i_we),
+	.iwbm_cti_o			(wb_m2s_or1k0_i_cti),
+	.iwbm_bte_o			(wb_m2s_or1k0_i_bte),
+	.iwbm_dat_o			(wb_m2s_or1k0_i_dat),
+
+	.dwbm_adr_o			(wb_m2s_or1k0_d_adr),
+	.dwbm_stb_o			(wb_m2s_or1k0_d_stb),
+	.dwbm_cyc_o			(wb_m2s_or1k0_d_cyc),
+	.dwbm_sel_o			(wb_m2s_or1k0_d_sel),
+	.dwbm_we_o			(wb_m2s_or1k0_d_we ),
+	.dwbm_cti_o			(wb_m2s_or1k0_d_cti),
+	.dwbm_bte_o			(wb_m2s_or1k0_d_bte),
+	.dwbm_dat_o			(wb_m2s_or1k0_d_dat),
+
+	.wb_clk				(wb_clk),
+	.wb_rst				(wb_rst),
+	.cpu_clk			(or1k_clk),
+	.cpu_rst			(or1k_rst),
+
+	.iwbm_err_i			(wb_s2m_or1k0_i_err),
+	.iwbm_ack_i			(wb_s2m_or1k0_i_ack),
+	.iwbm_dat_i			(wb_s2m_or1k0_i_dat),
+	.iwbm_rty_i			(wb_s2m_or1k0_i_rty),
+
+	.dwbm_err_i			(wb_s2m_or1k0_d_err),
+	.dwbm_ack_i			(wb_s2m_or1k0_d_ack),
+	.dwbm_dat_i			(wb_s2m_or1k0_d_dat),
+	.dwbm_rty_i			(wb_s2m_or1k0_d_rty),
+
+	.irq_i				(or1k_irq[0]),
+
+	.du_addr_i			(or1k_dbg_adr_i[0][15:0]),
+	.du_stb_i			(or1k_dbg_stb_i[0]),
+	.du_dat_i			(or1k_dbg_dat_i[0]),
+	.du_we_i			(or1k_dbg_we_i[0]),
+	.du_dat_o			(or1k_dbg_dat_o[0]),
+	.du_ack_o			(or1k_dbg_ack_o[0]),
+	.du_stall_i			(or1k_dbg_stall_i[0]),
+	.du_stall_o			(or1k_dbg_bp_o[0]),
+
+	.multicore_coreid_i		(0),
+	.multicore_numcores_i		(2),
+	.snoop_adr_i			(snoop_adr),
+	.snoop_en_i			(snoop_en)
+);
+
+or1k_marocchino_top #(
+	.FEATURE_DEBUGUNIT		("ENABLED"),
+	.OPTION_ICACHE_BLOCK_WIDTH	(5),
+	.OPTION_ICACHE_SET_WIDTH	(7),
+	.OPTION_ICACHE_WAYS		(1),
+	.OPTION_ICACHE_LIMIT_WIDTH	(32),
+	.OPTION_DCACHE_BLOCK_WIDTH	(5),
+	.OPTION_DCACHE_SET_WIDTH	(7),
+	.OPTION_DCACHE_WAYS		(1),
+	.OPTION_DCACHE_LIMIT_WIDTH	(31),
+	.OPTION_RF_NUM_SHADOW_GPR	(2),
+	.OPTION_RESET_PC		(32'h00000100)
+) or1k_marocchino1 (
+	.iwbm_adr_o			(wb_m2s_or1k1_i_adr),
+	.iwbm_stb_o			(wb_m2s_or1k1_i_stb),
+	.iwbm_cyc_o			(wb_m2s_or1k1_i_cyc),
+	.iwbm_sel_o			(wb_m2s_or1k1_i_sel),
+	.iwbm_we_o			(wb_m2s_or1k1_i_we),
+	.iwbm_cti_o			(wb_m2s_or1k1_i_cti),
+	.iwbm_bte_o			(wb_m2s_or1k1_i_bte),
+	.iwbm_dat_o			(wb_m2s_or1k1_i_dat),
+
+	.dwbm_adr_o			(wb_m2s_or1k1_d_adr),
+	.dwbm_stb_o			(wb_m2s_or1k1_d_stb),
+	.dwbm_cyc_o			(wb_m2s_or1k1_d_cyc),
+	.dwbm_sel_o			(wb_m2s_or1k1_d_sel),
+	.dwbm_we_o			(wb_m2s_or1k1_d_we ),
+	.dwbm_cti_o			(wb_m2s_or1k1_d_cti),
+	.dwbm_bte_o			(wb_m2s_or1k1_d_bte),
+	.dwbm_dat_o			(wb_m2s_or1k1_d_dat),
+
+	.wb_clk				(wb_clk),
+	.wb_rst				(wb_rst),
+	.cpu_clk			(or1k_clk),
+	.cpu_rst			(or1k_rst),
+
+	.iwbm_err_i			(wb_s2m_or1k1_i_err),
+	.iwbm_ack_i			(wb_s2m_or1k1_i_ack),
+	.iwbm_dat_i			(wb_s2m_or1k1_i_dat),
+	.iwbm_rty_i			(wb_s2m_or1k1_i_rty),
+
+	.dwbm_err_i			(wb_s2m_or1k1_d_err),
+	.dwbm_ack_i			(wb_s2m_or1k1_d_ack),
+	.dwbm_dat_i			(wb_s2m_or1k1_d_dat),
+	.dwbm_rty_i			(wb_s2m_or1k1_d_rty),
+
+	.irq_i				(or1k_irq[1]),
+
+	.du_addr_i			(or1k_dbg_adr_i[1][15:0]),
+	.du_stb_i			(or1k_dbg_stb_i[1]),
+	.du_dat_i			(or1k_dbg_dat_i[1]),
+	.du_we_i			(or1k_dbg_we_i[1]),
+	.du_dat_o			(or1k_dbg_dat_o[1]),
+	.du_ack_o			(or1k_dbg_ack_o[1]),
+	.du_stall_i			(or1k_dbg_stall_i[1]),
+	.du_stall_o			(or1k_dbg_bp_o[1]),
+
+	.multicore_coreid_i		(1),
+	.multicore_numcores_i		(2),
+	.snoop_adr_i			(snoop_adr),
+	.snoop_en_i			(snoop_en)
+);
+
+// Wire up trace port, not supported by marocchino
+assign traceport_exec_valid[0] = 0;
+assign traceport_exec_pc[0] = 0;
+assign traceport_exec_insn[0] = 0;
+assign traceport_exec_wbdata[0] = 0;
+assign traceport_exec_wbreg[0] = 0;
+assign traceport_exec_wben[0] = 0;
+
+assign traceport_exec_valid[1] = 0;
+assign traceport_exec_pc[1] = 0;
+assign traceport_exec_insn[1] = 0;
+assign traceport_exec_wbdata[1] = 0;
+assign traceport_exec_wbreg[1] = 0;
+assign traceport_exec_wben[1] = 0;
+
+
+end // if MAROCCHINO
+
+else begin : gencpu
 mor1kx #(
 	.FEATURE_DEBUGUNIT              ("ENABLED"),
 	.FEATURE_CMOV                   ("ENABLED"),
@@ -280,7 +429,7 @@ mor1kx #(
 
 	.IBUS_WB_TYPE                   ("B3_REGISTERED_FEEDBACK"),
 	.DBUS_WB_TYPE                   ("B3_REGISTERED_FEEDBACK"),
-	.OPTION_CPU0                    ("CAPPUCCINO"),
+	.OPTION_CPU0                    (option_pipeline),
 	.OPTION_RESET_PC                (32'h00000100)
 ) mor1kx0 (
 	.iwbm_adr_o			(wb_m2s_or1k0_i_adr),
@@ -363,7 +512,7 @@ mor1kx #(
 
 	.IBUS_WB_TYPE                   ("B3_REGISTERED_FEEDBACK"),
 	.DBUS_WB_TYPE                   ("B3_REGISTERED_FEEDBACK"),
-	.OPTION_CPU0                    ("CAPPUCCINO"),
+	.OPTION_CPU0                    (option_pipeline),
 	.OPTION_RESET_PC                (32'h00000100)
 ) mor1kx1 (
 	.iwbm_adr_o			(wb_m2s_or1k1_i_adr),
@@ -423,6 +572,9 @@ mor1kx #(
 	.du_stall_i(or1k_dbg_stall_i[1]),
 	.du_stall_o(or1k_dbg_bp_o[1])
 );
+
+end // else (not MAROCCHINO)
+endgenerate
 
 ////////////////////////////////////////////////////////////////////////
 //

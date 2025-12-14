@@ -21,6 +21,7 @@ filesets:
       - ">=i2c-1.14"
       - ">=jtag_tap-1.13"
       - mor1kx
+      - or1k_marocchino
       - ">=or1k_bootloaders-0.9.1"
       - ">=simple_spi-1.6"
       - ">=uart16550-1.5.5"
@@ -61,6 +62,8 @@ targets:
       - core_files
       - top_files
       - constraints
+    parameters:
+      - option_pipeline
     tools:
       quartus:
         family     : "Cyclone IV E"
@@ -76,6 +79,7 @@ targets:
     parameters:
       - bootrom_file
       - spi_flash_file
+      - option_pipeline
     tools:
       icarus:
         iverilog_options : [-DICARUS_SIM, -DSIM, -DSPEEDSIM]
@@ -105,3 +109,9 @@ parameters:
     description : Use SPI Flash model in simulations
     paramtype   : useflag
     scope       : private
+
+  option_pipeline:
+    datatype   : str
+    description: CPU pipeline to use CAPPUCCINO, MAROCCHINO (different implementation)
+    paramtype  : vlogparam
+    scope      : private

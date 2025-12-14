@@ -1,6 +1,7 @@
 `include "timescale.v"
 
-module orpsoc_tb;
+module orpsoc_tb
+#(parameter option_pipeline = "CAPPUCCINO");
 
 reg clk   = 0;
 reg rst_n = 1;
@@ -32,6 +33,7 @@ jtag_vpi jtag_vpi0
 
 orpsoc_top dut
 (
+	.option_pipeline	(option_pipeline),
 	.sys_clk_pad_i		(clk),
 	.rst_n_pad_i		(rst_n),
 	//JTAG interface
@@ -55,7 +57,20 @@ orpsoc_top dut
 	.uart0_stx_pad_o	(uart_tx)
 );
 
-mor1kx_monitor i_monitor();
+////////////////////////////////////////////////////////////////////////
+//
+// instruction monitor
+//
+////////////////////////////////////////////////////////////////////////
+generate
+	if (pipeline=="MAROCCHINO") begin : genmon
+		or1k_marocchino_monitor #(.LOG_DIR(".")) i_monitor();
+	end
+
+	else begin : genmon
+		mor1kx_monitor #(.LOG_DIR(".")) i_monitor();
+	end
+endgenerate
 
 ////////////////////////////////////////////////////////////////////////
 //
